@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -148,14 +148,20 @@ export default function ResetPasswordPage() {
           {loading ? "Resetting..." : "Reset Password"}
         </button>
 
-        {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
         <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
           <strong>Note:</strong> Please check your email inbox and spam/junk folder for the OTP. 
           Create a strong password using a mix of uppercase letters, lowercase letters, 
           numbers, and special characters for better security.
         </div>
-
       </form>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
