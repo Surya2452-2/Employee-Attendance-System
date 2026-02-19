@@ -15,15 +15,14 @@ const { autoMarkAbsent } = require("./controllers/attendanceController");
 const app = express();
 
 
-// 🔥 VERY IMPORTANT FOR RENDER (Fixes X-Forwarded-For error)
+
 app.set("trust proxy", 1);
 
 
-// ================= SECURITY =================
+
 app.use(helmet());
 
 
-// ================= CORS CONFIG =================
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
@@ -31,43 +30,34 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow non-browser tools (Postman, curl)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true, // Required for cookies
+    origin: [
+      "http://localhost:3000",
+      "https://employee-attendance-system-brown.vercel.app",
+    ],
+    credentials: true,
   })
 );
 
 
-// ================= MIDDLEWARE =================
+
 app.use(express.json());
 app.use(cookieParser());
 
 
-// ================= DATABASE =================
 connectDB()
   .then(() => {
     console.log("Database Connected");
-    autoMarkAbsent(); // optional demo feature
+    autoMarkAbsent(); 
   })
   .catch((err) => {
     console.error("DB Connection Failed:", err.message);
   });
 
 
-// ================= ROUTES =================
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
 
-// ================= PROTECTED TEST ROUTES =================
 app.get(
   "/api/admin/test",
   protect,
@@ -92,7 +82,6 @@ app.get(
 );
 
 
-// ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Attendance Backend Running",
@@ -100,7 +89,6 @@ app.get("/", (req, res) => {
 });
 
 
-// ================= GLOBAL ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.message);
 
@@ -116,7 +104,6 @@ app.use((err, req, res, next) => {
 });
 
 
-// ================= SERVER =================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
