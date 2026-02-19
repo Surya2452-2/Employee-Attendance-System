@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordContent() {
   const router = useRouter();
   const params = useSearchParams();
   const type = params.get("type") || "employee";
@@ -52,12 +52,11 @@ export default function ForgotPasswordPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden">
 
-      {/* TOP HALF - FOG BACKGROUND */}
+      {/* TOP HALF */}
       <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/fog.jpg')" }}
       >
-        {/* Dark overlay for better text visibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40"></div>
       </div>
 
@@ -113,13 +112,19 @@ export default function ForgotPasswordPage() {
           {loading ? "Sending OTP..." : "Send Reset OTP"}
         </button>
 
-        {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
         <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
           <strong>Note:</strong> Please enter a valid and registered email address 
           to receive the reset OTP. Also check your spam/junk folder if needed.
         </div>
-
       </form>
     </main>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <ForgotPasswordContent />
+    </Suspense>
   );
 }
