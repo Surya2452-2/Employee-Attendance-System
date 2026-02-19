@@ -207,11 +207,12 @@ exports.verifyLoginOtp = async (req, res) => {
 
     // ✅ SET SECURE COOKIE
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // change to true in production (https)
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+  httpOnly: true,
+  secure: true,          // 🔥 MUST be true for HTTPS
+  sameSite: "none",      // 🔥 REQUIRED for cross-domain
+  maxAge: 24 * 60 * 60 * 1000,
+});
+
 
     res.status(200).json({
       message: "Login successful",
