@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginOtpPage() {
+function LoginOtpContent() {
   const router = useRouter();
   const params = useSearchParams();
   const email = params.get("email");
@@ -40,7 +40,6 @@ export default function LoginOtpPage() {
 
       if (!res.ok) {
         setError(data.message || "OTP verification failed");
-        setLoading(false);
         return;
       }
 
@@ -53,9 +52,9 @@ export default function LoginOtpPage() {
     } catch (error) {
       console.error("OTP Verify Error:", error);
       setError("Server error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   if (!email) {
@@ -125,13 +124,20 @@ export default function LoginOtpPage() {
         >
           {loading ? "Verifying..." : "Verify & Login"}
         </button>
-          {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
+
         <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
           <strong>Note:</strong> If OTP has not been received, please check your email inbox 
           and also check your spam/junk folder for the OTP.
         </div>
       </form>
-
     </main>
+  );
+}
+
+export default function LoginOtpPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <LoginOtpContent />
+    </Suspense>
   );
 }
