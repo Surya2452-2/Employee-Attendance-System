@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function VerifyOtpPage() {
+function VerifyOtpContent() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -47,7 +47,6 @@ export default function VerifyOtpPage() {
 
       if (!res.ok) {
         setError(data.message || "OTP verification failed");
-        setLoading(false);
         return;
       }
 
@@ -88,7 +87,6 @@ export default function VerifyOtpPage() {
       />
 
       <div className="absolute top-0 left-0 w-full h-1/2 bg-black/40" />
-
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
 
       <form
@@ -148,7 +146,6 @@ export default function VerifyOtpPage() {
           {loading ? "Verifying..." : "Verify & Create Account"}
         </button>
 
-        {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
         <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
           <strong>Note:</strong> Please check your inbox and spam/junk folder for the OTP. 
           Create a strong password using uppercase letters, lowercase letters, 
@@ -156,7 +153,14 @@ export default function VerifyOtpPage() {
         </div>
 
       </form>
-
     </main>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <VerifyOtpContent />
+    </Suspense>
   );
 }
