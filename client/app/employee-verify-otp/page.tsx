@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function EmployeeVerifyOtpPage() {
+function EmployeeVerifyOtpContent() {
   const router = useRouter();
   const params = useSearchParams();
   const email = params.get("email") || "";
@@ -37,7 +37,7 @@ export default function EmployeeVerifyOtpPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ✅ keep consistent with cookie auth
+          credentials: "include",
           body: JSON.stringify({ email, otp, password }),
         }
       );
@@ -46,7 +46,6 @@ export default function EmployeeVerifyOtpPage() {
 
       if (!res.ok) {
         setError(data.message || "OTP verification failed");
-        setLoading(false);
         return;
       }
 
@@ -143,5 +142,13 @@ export default function EmployeeVerifyOtpPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function EmployeeVerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <EmployeeVerifyOtpContent />
+    </Suspense>
   );
 }
