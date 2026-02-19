@@ -14,8 +14,14 @@ const { autoMarkAbsent } = require("./controllers/attendanceController");
 
 const app = express();
 
+
+// 🔥 VERY IMPORTANT FOR RENDER (Fixes X-Forwarded-For error)
+app.set("trust proxy", 1);
+
+
 // ================= SECURITY =================
 app.use(helmet());
+
 
 // ================= CORS CONFIG =================
 const allowedOrigins = [
@@ -35,13 +41,15 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
-    credentials: true, // 🔥 REQUIRED for cookies
+    credentials: true, // Required for cookies
   })
 );
 
+
 // ================= MIDDLEWARE =================
 app.use(express.json());
-app.use(cookieParser()); // 🔥 REQUIRED to read cookies
+app.use(cookieParser());
+
 
 // ================= DATABASE =================
 connectDB()
@@ -53,9 +61,11 @@ connectDB()
     console.error("DB Connection Failed:", err.message);
   });
 
+
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
+
 
 // ================= PROTECTED TEST ROUTES =================
 app.get(
@@ -81,6 +91,7 @@ app.get(
   }
 );
 
+
 // ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -88,11 +99,11 @@ app.get("/", (req, res) => {
   });
 });
 
+
 // ================= GLOBAL ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.message);
 
-  // Handle CORS errors cleanly
   if (err.message === "Not allowed by CORS") {
     return res.status(403).json({
       message: "CORS Error: Origin not allowed",
@@ -103,6 +114,7 @@ app.use((err, req, res, next) => {
     message: "Something went wrong",
   });
 });
+
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 5000;
