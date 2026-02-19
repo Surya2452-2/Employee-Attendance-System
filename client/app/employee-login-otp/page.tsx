@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function EmployeeLoginOtpPage() {
+function EmployeeLoginOtpContent() {
   const router = useRouter();
   const params = useSearchParams();
   const email = params.get("email") || "";
@@ -57,11 +57,11 @@ export default function EmployeeLoginOtpPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden">
 
-      {/* 🔵 TOP HALF (Dark Corporate Gradient) */}
+      {/* 🔵 TOP HALF */}
       <div className="absolute top-0 left-0 w-full h-1/2 
                        bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-800" />
 
-      {/* ⚪ BOTTOM HALF (Soft Light Gray) */}
+      {/* ⚪ BOTTOM HALF */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gray-100" />
 
       {/* 🟢 WHITE CARD */}
@@ -107,7 +107,7 @@ export default function EmployeeLoginOtpPage() {
           {loading ? "Verifying..." : "Verify & Login"}
         </button>
 
-        {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
+        {/* 📝 NOTE BLOCK */}
         <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
           <strong>Note:</strong> If OTP has not been received, please check your email inbox 
           and also check your spam/junk folder for the OTP.
@@ -115,5 +115,13 @@ export default function EmployeeLoginOtpPage() {
 
       </form>
     </main>
+  );
+}
+
+export default function EmployeeLoginOtpPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <EmployeeLoginOtpContent />
+    </Suspense>
   );
 }
