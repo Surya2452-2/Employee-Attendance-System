@@ -1,45 +1,31 @@
 const jwt = require("jsonwebtoken");
 
-// ================= PROTECT MIDDLEWARE =================
 exports.protect = (req, res, next) => {
   try {
-    // ✅ Read token from httpOnly cookie
-    const token = req.cookies?.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
-        message: "Not authenticated. Token missing.",
+        message: "Not authenticated",
       });
     }
 
-    // ✅ Verify token
+    const token = authHeader.split(" ")[1];
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user info to request
-    req.user = decoded; // { id, role, name }
+    req.user = decoded;
 
     next();
-
   } catch (error) {
-    console.error("Auth Error:", error.message);
-
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({
-        message: "Token expired. Please login again.",
-      });
-    }
-
     return res.status(401).json({
-      message: "Invalid token. Please login again.",
+      message: "Token invalid or expired",
     });
   }
 };
 
-
-// ================= ROLE-BASED AUTHORIZATION =================
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-
     if (!req.user) {
       return res.status(401).json({
         message: "Not authenticated",
