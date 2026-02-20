@@ -10,6 +10,7 @@ export default function EmployeeLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState("");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,6 +21,7 @@ export default function EmployeeLoginPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -31,14 +33,16 @@ export default function EmployeeLoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Login failed");
+        setError(data.message || "Login failed");
         return;
       }
 
-      router.push(`/employee-login-otp?email=${email}&type=employee`);
+      localStorage.setItem("token", data.token);
+      router.push("/employee-dashboard");
+
     } catch (error) {
       console.error(error);
-      alert("Server error. Try again later.");
+      setError("Server error. Try again later.");
     } finally {
       setLoading(false);
     }
@@ -46,22 +50,15 @@ export default function EmployeeLoginPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden">
-
-      {/* 🔵 TOP HALF */}
-      <div className="absolute top-0 left-0 w-full h-1/2 
-                      bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-800">
-
-        {/* Background Image */}
+      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-800">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: "url('/images/emplogbg.jpg')" }}
         />
       </div>
 
-      {/* ⚪ BOTTOM HALF */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
 
-      {/* 🔥 ANIMATED CENTER CARD */}
       <form
         onSubmit={handleLogin}
         className={`relative z-10 w-full max-w-md rounded-3xl 
@@ -75,7 +72,7 @@ export default function EmployeeLoginPage() {
         </h1>
 
         <p className="mb-8 text-center text-sm text-slate-600">
-          Enter your credentials to receive OTP
+          Enter your credentials to access dashboard
         </p>
 
         <div className="space-y-5">
@@ -87,8 +84,7 @@ export default function EmployeeLoginPage() {
             required
             className="w-full border border-slate-300 px-4 py-3 rounded-xl
                        text-slate-800 placeholder-slate-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-600
-                       focus:border-indigo-600 transition"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
 
           <input
@@ -99,20 +95,15 @@ export default function EmployeeLoginPage() {
             required
             className="w-full border border-slate-300 px-4 py-3 rounded-xl
                        text-slate-800 placeholder-slate-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-600
-                       focus:border-indigo-600 transition"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
         </div>
 
-        <div className="text-right mt-3">
-          <button
-            type="button"
-            onClick={() => router.push("/forgot-password?type=employee")}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            Forgot Password?
-          </button>
-        </div>
+        {error && (
+          <p className="text-red-500 text-sm text-center mt-4">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -122,7 +113,7 @@ export default function EmployeeLoginPage() {
                      hover:shadow-xl hover:-translate-y-1
                      disabled:opacity-50"
         >
-          {loading ? "Sending OTP..." : "Send OTP"}
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="mt-6 text-center text-sm text-slate-600">
