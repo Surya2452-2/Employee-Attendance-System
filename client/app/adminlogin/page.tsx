@@ -27,7 +27,10 @@ export default function AdminLoginPage() {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
       const data = await res.json();
@@ -37,9 +40,11 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push(`/login-otp?email=${email}&type=admin`);
+      localStorage.setItem("token", data.token);
+      router.push("/admindashboard");
 
-    } catch {
+    } catch (error) {
+      console.error(error);
       setError("Server error. Please try again.");
     } finally {
       setLoading(false);
@@ -48,20 +53,15 @@ export default function AdminLoginPage() {
 
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
-
-      {/* TOP HALF IMAGE */}
       <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/adminbg.jpg')" }}
       />
 
-      {/* DARK OVERLAY */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-br from-black/70 via-black/60 to-black/70" />
 
-      {/* BOTTOM HALF */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
 
-      {/* 🔥 SAME ANIMATION AS EMPLOYEE LOGIN */}
       <form
         onSubmit={handleLogin}
         className={`relative z-10 w-full max-w-md bg-white p-10 rounded-3xl 
@@ -85,8 +85,7 @@ export default function AdminLoginPage() {
           required
           className="w-full mb-5 border border-slate-300 rounded-xl px-4 py-3
                      text-slate-900 placeholder-slate-400
-                     focus:outline-none focus:ring-2 focus:ring-indigo-600
-                     focus:border-indigo-600 transition"
+                     focus:outline-none focus:ring-2 focus:ring-indigo-600"
         />
 
         <input
@@ -95,10 +94,9 @@ export default function AdminLoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full mb-3 border border-slate-300 rounded-xl px-4 py-3
+          className="w-full mb-6 border border-slate-300 rounded-xl px-4 py-3
                      text-slate-900 placeholder-slate-400
-                     focus:outline-none focus:ring-2 focus:ring-indigo-600
-                     focus:border-indigo-600 transition"
+                     focus:outline-none focus:ring-2 focus:ring-indigo-600"
         />
 
         {error && (
@@ -107,16 +105,6 @@ export default function AdminLoginPage() {
           </p>
         )}
 
-        <div className="text-right mb-6">
-          <button
-            type="button"
-            onClick={() => router.push("/forgot-password?type=admin")}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            Forgot Password?
-          </button>
-        </div>
-
         <button
           type="submit"
           disabled={loading}
@@ -124,7 +112,7 @@ export default function AdminLoginPage() {
                      hover:bg-indigo-700 transition duration-300
                      hover:shadow-lg disabled:opacity-50"
         >
-          {loading ? "Sending OTP..." : "Send OTP"}
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="mt-6 text-center text-sm text-slate-600">
@@ -138,7 +126,6 @@ export default function AdminLoginPage() {
           </button>
         </p>
       </form>
-
     </main>
   );
 }
