@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -14,19 +13,7 @@ const { autoMarkAbsent } = require("./controllers/attendanceController");
 
 const app = express();
 
-
-
-app.set("trust proxy", 1);
-
-
-
 app.use(helmet());
-
-
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
 
 app.use(
   cors({
@@ -34,29 +21,22 @@ app.use(
       "http://localhost:3000",
       "https://employee-attendance-system-brown.vercel.app",
     ],
-    credentials: true,
   })
 );
 
-
-
 app.use(express.json());
-app.use(cookieParser());
-
 
 connectDB()
   .then(() => {
     console.log("Database Connected");
-    autoMarkAbsent(); 
+    autoMarkAbsent();
   })
   .catch((err) => {
     console.error("DB Connection Failed:", err.message);
   });
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
-
 
 app.get(
   "/api/admin/test",
@@ -81,28 +61,18 @@ app.get(
   }
 );
 
-
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Attendance Backend Running",
   });
 });
 
-
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.message);
-
-  if (err.message === "Not allowed by CORS") {
-    return res.status(403).json({
-      message: "CORS Error: Origin not allowed",
-    });
-  }
-
   res.status(500).json({
     message: "Something went wrong",
   });
 });
-
 
 const PORT = process.env.PORT || 5000;
 
