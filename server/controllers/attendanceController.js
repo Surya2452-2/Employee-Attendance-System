@@ -2,12 +2,10 @@ const Attendance = require("../models/Attendance");
 const User = require("../models/User");
 const { Parser } = require("json2csv");
 
-// ================= HELPER =================
 const getTodayDate = () => {
   return new Date().toISOString().split("T")[0];
 };
 
-// ================= MARK LOGIN =================
 exports.markLogin = async (req, res) => {
   try {
     const today = getTodayDate();
@@ -32,16 +30,13 @@ exports.markLogin = async (req, res) => {
 
     const status = now > lateThreshold ? "Late" : "Present";
 
-    // 🔥 If record already exists (auto absent case)
     if (attendance) {
-      // If login already marked
       if (attendance.loginTime) {
         return res.status(400).json({
           message: "You already marked attendance today",
         });
       }
 
-      // Update existing Absent record
       attendance.loginTime = now;
       attendance.status = status;
       attendance.totalHours = 0;
@@ -51,7 +46,6 @@ exports.markLogin = async (req, res) => {
       return res.status(200).json(attendance);
     }
 
-    // 🔥 If no record exists
     attendance = await Attendance.create({
       employeeId: req.user.id,
       name: user.name,
@@ -70,7 +64,6 @@ exports.markLogin = async (req, res) => {
   }
 };
 
-// ================= MARK LOGOUT =================
 exports.markLogout = async (req, res) => {
   try {
     const today = getTodayDate();
@@ -99,7 +92,13 @@ exports.markLogout = async (req, res) => {
     }
 
     const now = new Date();
-    attendance.logoutTime = now;
+
+    const dayEnd = new Date();
+    dayEnd.setHours(18, 30, 0, 0);
+
+    const finalLogout = now > dayEnd ? dayEnd : now;
+
+    attendance.logoutTime = finalLogout;
 
     const diffHours =
       (attendance.logoutTime - attendance.loginTime) /
@@ -109,8 +108,6 @@ exports.markLogout = async (req, res) => {
 
     if (attendance.totalHours < 8) {
       attendance.status = "Incomplete";
-    } else {
-      attendance.status = "Present";
     }
 
     await attendance.save();
@@ -125,7 +122,6 @@ exports.markLogout = async (req, res) => {
   }
 };
 
-// ================= GET MY ATTENDANCE =================
 exports.getMyAttendance = async (req, res) => {
   try {
     const records = await Attendance.find({
@@ -142,7 +138,6 @@ exports.getMyAttendance = async (req, res) => {
   }
 };
 
-// ================= ADMIN: GET ALL ATTENDANCE =================
 exports.getAllAttendance = async (req, res) => {
   try {
     const records = await Attendance.find()
@@ -158,7 +153,6 @@ exports.getAllAttendance = async (req, res) => {
   }
 };
 
-// ================= AUTO MARK ABSENT =================
 exports.autoMarkAbsent = async () => {
   try {
     const today = getTodayDate();
@@ -192,7 +186,6 @@ exports.autoMarkAbsent = async () => {
   }
 };
 
-// ================= EXPORT CSV =================
 exports.exportAttendanceCSV = async (req, res) => {
   try {
     const records = await Attendance.find().sort({ date: -1 });
