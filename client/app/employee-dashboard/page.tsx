@@ -23,14 +23,11 @@ export default function EmployeeDashboard() {
 
   const fetchAttendance = async (token: string) => {
     try {
-      const res = await fetch(
-        `${API_URL}/api/attendance/my`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${API_URL}/api/attendance/my`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!res.ok) {
         localStorage.removeItem("token");
@@ -41,16 +38,12 @@ export default function EmployeeDashboard() {
       const data = await res.json();
       setRecords(data);
 
-      const today = new Date();
+      const today = new Date().toISOString().split("T")[0];
 
-      const todayData = data.find((r: any) => {
-        const recordDate = new Date(r.date);
-        return (
-          recordDate.getFullYear() === today.getFullYear() &&
-          recordDate.getMonth() === today.getMonth() &&
-          recordDate.getDate() === today.getDate()
-        );
-      });
+      const todayData = data.find(
+        (r: any) =>
+          new Date(r.date).toISOString().split("T")[0] === today
+      );
 
       setTodayRecord(todayData || null);
 
@@ -95,26 +88,18 @@ export default function EmployeeDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/employeelogin");
-  };
-
-  const getTodayStatus = () => {
-    if (!todayRecord) return "Absent";
-    if (todayRecord.totalHours >= 8) return "Present";
-    if (todayRecord.logoutTime && todayRecord.totalHours < 8)
-      return "Incomplete";
-    return "Present";
+    router.push("/");
   };
 
   const badgeColor = (status: string) => {
     if (status === "Present")
       return "bg-emerald-100 text-emerald-700";
+    if (status === "Late")
+      return "bg-yellow-100 text-yellow-800";
     if (status === "Incomplete")
       return "bg-red-100 text-red-700";
     return "bg-gray-200 text-gray-700";
   };
-
-  const status = getTodayStatus();
 
   return (
     <main className="relative min-h-screen p-6 md:p-10 overflow-hidden">
@@ -151,21 +136,21 @@ export default function EmployeeDashboard() {
 
         <div className="grid md:grid-cols-3 gap-6 mb-10">
 
-          <div className="bg-white shadow-xl p-6 rounded-2xl hover:scale-[1.02] transition">
+          <div className="bg-white shadow-xl p-6 rounded-2xl">
             <p className="text-sm text-slate-500 mb-2">Today Status</p>
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${badgeColor(status)}`}>
-              {status}
+            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${badgeColor(todayRecord?.status || "Absent")}`}>
+              {todayRecord?.status || "Absent"}
             </span>
           </div>
 
-          <div className="bg-white shadow-xl p-6 rounded-2xl hover:scale-[1.02] transition">
+          <div className="bg-white shadow-xl p-6 rounded-2xl">
             <p className="text-sm text-slate-500 mb-2">Total Hours Today</p>
             <h2 className="text-3xl font-bold text-indigo-600">
               {todayRecord?.totalHours ?? 0} hrs
             </h2>
           </div>
 
-          <div className="bg-white shadow-xl p-6 rounded-2xl hover:scale-[1.02] transition">
+          <div className="bg-white shadow-xl p-6 rounded-2xl">
             <p className="text-sm text-slate-500 mb-2">Login Time</p>
             <h2 className="text-lg font-semibold text-slate-800">
               {todayRecord?.loginTime
@@ -225,56 +210,46 @@ export default function EmployeeDashboard() {
                   </tr>
                 )}
 
-                {records.map((r) => {
-                  const rowStatus = (() => {
-                    if (!r.loginTime) return "Absent";
-                    if (r.loginTime && !r.logoutTime) return "Present";
-                    if (r.totalHours >= 8) return "Present";
-                    if (r.logoutTime && r.totalHours < 8) return "Incomplete";
-                    return "Absent";
-                  })();
+                {records.map((r) => (
+                  <tr
+                    key={r._id}
+                    className="border-b border-slate-200 hover:bg-slate-50 transition duration-200"
+                  >
+                    <td className="py-4 px-4 font-semibold text-slate-900">
+                      {new Date(r.date).toLocaleDateString("en-IN")}
+                    </td>
 
-                  return (
-                    <tr
-                      key={r._id}
-                      className="border-b border-slate-200 hover:bg-slate-50 transition duration-200"
-                    >
-                      <td className="py-4 px-4 font-semibold text-slate-900">
-                        {new Date(r.date).toLocaleDateString("en-IN")}
-                      </td>
+                    <td className="px-4 text-slate-800 font-medium">
+                      {r.loginTime
+                        ? new Date(r.loginTime).toLocaleTimeString("en-IN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "-"}
+                    </td>
 
-                      <td className="px-4 text-slate-800 font-medium">
-                        {r.loginTime
-                          ? new Date(r.loginTime).toLocaleTimeString("en-IN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
-                          : "-"}
-                      </td>
+                    <td className="px-4 text-slate-800 font-medium">
+                      {r.logoutTime
+                        ? new Date(r.logoutTime).toLocaleTimeString("en-IN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "-"}
+                    </td>
 
-                      <td className="px-4 text-slate-800 font-medium">
-                        {r.logoutTime
-                          ? new Date(r.logoutTime).toLocaleTimeString("en-IN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
-                          : "-"}
-                      </td>
+                    <td className="px-4 font-bold text-indigo-600">
+                      {r.totalHours}
+                    </td>
 
-                      <td className="px-4 font-bold text-indigo-600">
-                        {r.totalHours}
-                      </td>
-
-                      <td className="px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor(rowStatus)}`}>
-                          {rowStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <td className="px-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor(r.status)}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
 
               </tbody>
             </table>
