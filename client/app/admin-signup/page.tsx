@@ -8,6 +8,7 @@ export default function AdminSignupPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,12 +19,17 @@ export default function AdminSignupPage() {
     return regex.test(value);
   };
 
-  const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
 
@@ -41,6 +47,7 @@ export default function AdminSignupPage() {
         body: JSON.stringify({
           name,
           email,
+          password,
           role: "admin",
         }),
       });
@@ -52,7 +59,8 @@ export default function AdminSignupPage() {
         return;
       }
 
-      router.push(`/verify-otp?email=${email}&type=admin`);
+      alert("Signup successful! Please login.");
+      router.push("/adminlogin");
 
     } catch {
       setError("Server error. Please try again.");
@@ -64,19 +72,15 @@ export default function AdminSignupPage() {
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-      {/* 🔹 TOP HALF IMAGE */}
       <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/adsig.jpg')" }}
       />
 
-      {/* 🔹 DARK OVERLAY */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-black/60 backdrop-blur-sm" />
 
-      {/* 🔹 BOTTOM HALF */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-slate-100" />
 
-      {/* 🔥 IMPROVED CARD DESIGN */}
       <div className="relative z-10 w-full max-w-md 
                       bg-gradient-to-br from-white to-slate-50
                       shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)]
@@ -92,9 +96,8 @@ export default function AdminSignupPage() {
           Create your administrator account
         </p>
 
-        <form onSubmit={handleSendOtp} className="space-y-6">
+        <form onSubmit={handleSignup} className="space-y-6">
 
-          {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Full Name
@@ -114,7 +117,6 @@ export default function AdminSignupPage() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Admin Email
@@ -134,7 +136,25 @@ export default function AdminSignupPage() {
             />
           </div>
 
-          {/* Error */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Create a password"
+              className="w-full bg-white text-slate-900
+                         border border-slate-300 rounded-xl px-4 py-3
+                         placeholder-slate-400
+                         focus:ring-2 focus:ring-indigo-700
+                         focus:border-indigo-700
+                         outline-none transition"
+            />
+          </div>
+
           {error && (
             <div className="bg-red-50 border border-red-300 
                             text-red-700 text-sm px-4 py-3 rounded-lg">
@@ -142,7 +162,6 @@ export default function AdminSignupPage() {
             </div>
           )}
 
-          {/* Button */}
           <button
             type="submit"
             disabled={loading}
@@ -152,17 +171,8 @@ export default function AdminSignupPage() {
                        hover:-translate-y-1 hover:shadow-lg
                        disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Sending OTP..." : "Send OTP"}
+            {loading ? "Creating Account..." : "Register"}
           </button>
-
-          {/* 📝 NOTE BLOCK */}
-          <div className="mt-4 p-3 rounded-lg bg-yellow-50 
-                          border border-yellow-300 
-                          text-sm text-yellow-800 text-center">
-            <strong>Note:</strong> Please use a valid administrator email address. 
-            After clicking "Send OTP", check your inbox and spam/junk folder 
-            for the verification OTP.
-          </div>
 
         </form>
 
