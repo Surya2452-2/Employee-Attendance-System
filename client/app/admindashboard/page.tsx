@@ -147,6 +147,23 @@ export default function AdminDashboard() {
     router.replace("/");
   };
 
+  const calculateDisplayHours = (record: any) => {
+    if (!record.loginTime) return 0;
+
+    const login = new Date(record.loginTime);
+    const logout = record.logoutTime
+      ? new Date(record.logoutTime)
+      : new Date();
+
+    const dayEnd = new Date(login);
+    dayEnd.setHours(18, 30, 0, 0);
+
+    const finalLogout = logout > dayEnd ? dayEnd : logout;
+
+    const diff = (finalLogout.getTime() - login.getTime()) / (1000 * 60 * 60);
+    return Number(diff.toFixed(2));
+  };
+
   return (
     <div className="relative min-h-screen">
       <div
@@ -157,7 +174,7 @@ export default function AdminDashboard() {
 
       <div className="relative flex min-h-screen">
 
-        <aside className="w-64 bg-white backdrop-blur-xl shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
+        <aside className="w-64 bg-white shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
           <div>
             <h2 className="text-2xl font-bold text-indigo-600 mb-12">
               Admin Panel
@@ -167,11 +184,9 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-100 text-indigo-700 font-semibold shadow-sm">
                 Dashboard
               </div>
-
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer">
                 Attendance
               </div>
-
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer">
                 Reports
               </div>
@@ -273,7 +288,7 @@ export default function AdminDashboard() {
                     </td>
 
                     <td className="px-4 font-bold text-indigo-800 text-base">
-                      {r.totalHours}
+                      {calculateDisplayHours(r)}
                     </td>
 
                     <td className="px-4">
