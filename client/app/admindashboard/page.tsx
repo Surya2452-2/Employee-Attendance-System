@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/adminlogin");
+    router.push("/");
   };
 
   return (
@@ -208,6 +208,90 @@ export default function AdminDashboard() {
             <SummaryCard title="Today Late" value={counts.late} accent="yellow" />
             <SummaryCard title="Today Incomplete" value={counts.incomplete} accent="red" />
             <SummaryCard title="Today Absent" value={counts.absent} accent="slate" />
+          </div>
+
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Search employee..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-slate-300 px-4 py-2 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 outline-none shadow-sm"
+              />
+
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="border border-slate-300 px-4 py-2 rounded-xl bg-white text-slate-900 font-medium focus:ring-2 focus:ring-indigo-600 outline-none shadow-sm"
+              />
+            </div>
+
+            <button
+              onClick={handleExport}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-xl shadow-md hover:bg-indigo-700 transition"
+            >
+              Export CSV
+            </button>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-slate-200">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-indigo-600 text-white uppercase tracking-wide shadow-md">
+                <tr>
+                  <th className="py-3 px-4">Name</th>
+                  <th className="px-4">Date</th>
+                  <th className="px-4">Login</th>
+                  <th className="px-4">Logout</th>
+                  <th className="px-4">Hours</th>
+                  <th className="px-4">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredRecords.map((r) => (
+                  <tr key={r._id} className="border-b hover:bg-indigo-50">
+                    <td className="py-3 px-4 font-semibold text-slate-800">
+                      {r.name}
+                    </td>
+                    <td className="px-4">
+                      {new Date(r.date).toLocaleDateString("en-IN")}
+                    </td>
+                    <td className="px-4">
+                      {r.loginTime ? new Date(r.loginTime).toLocaleTimeString("en-IN") : "-"}
+                    </td>
+                    <td className="px-4">
+                      {r.logoutTime ? new Date(r.logoutTime).toLocaleTimeString("en-IN") : "-"}
+                    </td>
+                    <td className="px-4 font-bold text-indigo-700">
+                      {r.totalHours}
+                    </td>
+                    <td className="px-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        r.status === "Present"
+                          ? "bg-emerald-500 text-white"
+                          : r.status === "Late"
+                          ? "bg-yellow-400 text-yellow-900"
+                          : r.status === "Incomplete"
+                          ? "bg-red-500 text-white"
+                          : "bg-slate-600 text-white"
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredRecords.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-slate-500">
+                      No records found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
         </main>
