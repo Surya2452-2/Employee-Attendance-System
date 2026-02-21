@@ -23,12 +23,16 @@ exports.markLogin = async (req, res) => {
       });
     }
 
-    const now = new Date();
+const now = new Date();
 
-    const lateThreshold = new Date();
-    lateThreshold.setHours(9, 30, 0, 0);
+const indiaTime = new Date(
+  now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+);
 
-    const status = now > lateThreshold ? "Late" : "Present";
+const lateThreshold = new Date(indiaTime);
+lateThreshold.setHours(9, 30, 0, 0);
+
+const status = indiaTime > lateThreshold ? "Late" : "Present";
 
     if (attendance) {
       if (attendance.loginTime) {
