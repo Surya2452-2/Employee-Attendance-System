@@ -18,18 +18,30 @@ export default function AdminDashboard() {
     absent: 0,
   });
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
-    fetchAttendance();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/adminlogin");
+      return;
+    }
+    fetchAttendance(token);
   }, []);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = async (token: string) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/admin/attendance`,
-        { credentials: "include" }
+        `${API_URL}/api/attendance/admin/attendance`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!res.ok) {
+        localStorage.removeItem("token");
         router.push("/adminlogin");
         return;
       }
@@ -43,7 +55,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // 🔥 Today-only summary counts
   const animateCounts = (data: any[]) => {
     const today = new Date().toISOString().split("T")[0];
 
@@ -75,7 +86,6 @@ export default function AdminDashboard() {
     }, 30);
   };
 
-  // 🔍 Filtering
   useEffect(() => {
     let temp = records;
 
@@ -95,15 +105,25 @@ export default function AdminDashboard() {
     setFilteredRecords(temp);
   }, [search, selectedDate, records]);
 
-  // 📤 Export CSV
   const handleExport = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/adminlogin");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/admin/export`,
-        { credentials: "include" }
+        `${API_URL}/api/attendance/admin/export`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
+        localStorage.removeItem("token");
         router.push("/adminlogin");
         return;
       }
@@ -122,71 +142,49 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
-      { method: "POST", credentials: "include" }
-    );
-    router.push("/");
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/adminlogin");
   };
 
   return (
     <div className="relative min-h-screen">
-
-      {/* 🌄 Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/dashboardbg.jpg')" }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/60 to-white/80 backdrop-blur-sm" />
 
-
       <div className="relative flex min-h-screen">
 
-        {/* Sidebar */}
-       {/* Sidebar */}
-<aside className="w-64 bg-white/90 backdrop-blur-xl shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
+        <aside className="w-64 bg-white/90 backdrop-blur-xl shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
+          <div>
+            <h2 className="text-2xl font-bold text-indigo-600 mb-12">
+              Admin Panel
+            </h2>
 
-  <div>
-    <h2 className="text-2xl font-bold text-indigo-600 mb-12">
-      Admin Panel
-    </h2>
+            <nav className="space-y-4">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-100 text-indigo-700 font-semibold shadow-sm">
+                Dashboard
+              </div>
 
-    <nav className="space-y-4">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer">
+                Attendance
+              </div>
 
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl 
-                      bg-indigo-100 text-indigo-700 font-semibold shadow-sm">
-        📊 Dashboard
-      </div>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer">
+                Reports
+              </div>
+            </nav>
+          </div>
 
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl 
-                      text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 
-                      transition cursor-pointer">
-        🗂 Attendance
-      </div>
+          <div className="text-xs text-slate-400 mt-10">
+            © {new Date().getFullYear()} Attendance System
+          </div>
+        </aside>
 
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl 
-                      text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 
-                      transition cursor-pointer">
-        📈 Reports
-      </div>
-
-      
-    </nav>
-  </div>
-
-  {/* Footer */}
-  <div className="text-xs text-slate-400 mt-10">
-    © {new Date().getFullYear()} Attendance System
-  </div>
-
-</aside>
-
-
-        {/* Main */}
         <main className="flex-1 p-10">
 
-          {/* Header */}
           <div className="flex justify-between items-center mb-10">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">
@@ -205,122 +203,11 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Summary Cards */}
           <div className="grid md:grid-cols-4 gap-8 mb-10">
             <SummaryCard title="Today Present" value={counts.present} accent="emerald" />
             <SummaryCard title="Today Late" value={counts.late} accent="yellow" />
             <SummaryCard title="Today Incomplete" value={counts.incomplete} accent="red" />
             <SummaryCard title="Today Absent" value={counts.absent} accent="slate" />
-          </div>
-
-          {/* Filters + Export */}
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                placeholder="Search employee..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border border-slate-300 px-4 py-2 rounded-xl
-                           bg-white text-slate-900
-                           focus:ring-2 focus:ring-indigo-600 outline-none shadow-sm"
-              />
-
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="border border-slate-300 px-4 py-2 rounded-xl
-                           bg-white text-slate-900 font-medium
-                           focus:ring-2 focus:ring-indigo-600 outline-none shadow-sm"
-              />
-            </div>
-
-            <button
-              onClick={handleExport}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-xl shadow-md hover:bg-indigo-700 transition"
-            >
-              Export CSV
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-slate-200">
-            <table className="w-full text-left text-sm">
-
-              <thead className="bg-indigo-600 text-white uppercase tracking-wide shadow-md">
-                <tr>
-                  <th className="py-3 px-4">Name</th>
-                  <th className="px-4">Date</th>
-                  <th className="px-4">Login</th>
-                  <th className="px-4">Logout</th>
-                  <th className="px-4">Hours</th>
-                  <th className="px-4">Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredRecords.map((r) => (
-                  <tr
-                    key={r._id}
-                    className="border-b transition duration-300 
-                               hover:bg-indigo-50 
-                               hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-800">
-                      {r.name}
-                    </td>
-
-                    <td className="px-4 text-slate-700 font-medium">
-                      {new Date(r.date).toLocaleDateString("en-IN")}
-                    </td>
-
-                    <td className="px-4 text-slate-800">
-                      {r.loginTime
-                        ? new Date(r.loginTime).toLocaleTimeString("en-IN")
-                        : "-"}
-                    </td>
-
-                    <td className="px-4 text-slate-800">
-                      {r.logoutTime
-                        ? new Date(r.logoutTime).toLocaleTimeString("en-IN")
-                        : "-"}
-                    </td>
-
-                    <td className="px-4 font-bold text-indigo-700 text-base">
-                      {r.totalHours}
-                    </td>
-
-                    <td className="px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold 
-                        ${
-                          r.status === "Present"
-                            ? "bg-emerald-500 text-white"
-                            : r.status === "Late"
-                            ? "bg-yellow-400 text-yellow-900"
-                            : r.status === "Incomplete"
-                            ? "bg-red-500 text-white"
-                            : r.status === "Absent"
-                            ? "bg-slate-600 text-white"
-                            : "bg-slate-300 text-slate-800"
-                        }`}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredRecords.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-500">
-                      No records found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
 
         </main>
@@ -338,9 +225,7 @@ function SummaryCard({ title, value, accent }: any) {
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-slate-200
-                    transition duration-300 transform hover:-translate-y-1
-                    hover:shadow-2xl hover:shadow-indigo-200/50">
+    <div className="bg-white/95 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-slate-200 transition duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-200/50">
       <h3 className="text-slate-600 text-sm mb-2">{title}</h3>
       <p className={`text-3xl font-bold ${textColors[accent]}`}>
         {value}
