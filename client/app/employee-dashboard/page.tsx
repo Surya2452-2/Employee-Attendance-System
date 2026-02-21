@@ -10,18 +10,30 @@ export default function EmployeeDashboard() {
   const [todayRecord, setTodayRecord] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
-    fetchAttendance();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/employeelogin");
+      return;
+    }
+    fetchAttendance(token);
   }, []);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = async (token: string) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/my`,
-        { credentials: "include" }
+        `${API_URL}/api/attendance/my`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!res.ok) {
+        localStorage.removeItem("token");
         router.push("/employeelogin");
         return;
       }
@@ -48,31 +60,42 @@ export default function EmployeeDashboard() {
   };
 
   const markLogin = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return router.push("/employeelogin");
+
     setLoading(true);
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/login`,
-      { method: "POST", credentials: "include" }
-    );
-    await fetchAttendance();
+
+    await fetch(`${API_URL}/api/attendance/login`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    await fetchAttendance(token);
     setLoading(false);
   };
 
   const markLogout = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return router.push("/employeelogin");
+
     setLoading(true);
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/logout`,
-      { method: "POST", credentials: "include" }
-    );
-    await fetchAttendance();
+
+    await fetch(`${API_URL}/api/attendance/logout`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    await fetchAttendance(token);
     setLoading(false);
   };
 
-  const handleLogout = async () => {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
-      { method: "POST", credentials: "include" }
-    );
-    router.push("/");
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/employeelogin");
   };
 
   const getTodayStatus = () => {
@@ -85,9 +108,9 @@ export default function EmployeeDashboard() {
 
   const badgeColor = (status: string) => {
     if (status === "Present")
-      return "bg-emerald-100 text-emerald-700 animate-pulse";
+      return "bg-emerald-100 text-emerald-700";
     if (status === "Incomplete")
-      return "bg-red-100 text-red-700 animate-pulse";
+      return "bg-red-100 text-red-700";
     return "bg-gray-200 text-gray-700";
   };
 
@@ -96,7 +119,6 @@ export default function EmployeeDashboard() {
   return (
     <main className="relative min-h-screen p-6 md:p-10 overflow-hidden">
 
-      {/* 🌌 BACKGROUND IMAGE */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -105,12 +127,10 @@ export default function EmployeeDashboard() {
         }}
       />
 
-      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-indigo-900/60 to-black/70 backdrop-blur-sm" />
 
       <div className="relative z-10">
 
-        {/* HEADER */}
         <div className="bg-white/95 shadow-xl rounded-2xl p-6 flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">
@@ -129,19 +149,18 @@ export default function EmployeeDashboard() {
           </button>
         </div>
 
-        {/* STAT CARDS */}
         <div className="grid md:grid-cols-3 gap-6 mb-10">
 
           <div className="bg-white shadow-xl p-6 rounded-2xl hover:scale-[1.02] transition">
             <p className="text-sm text-slate-500 mb-2">Today Status</p>
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-500 ${badgeColor(status)}`}>
+            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${badgeColor(status)}`}>
               {status}
             </span>
           </div>
 
           <div className="bg-white shadow-xl p-6 rounded-2xl hover:scale-[1.02] transition">
             <p className="text-sm text-slate-500 mb-2">Total Hours Today</p>
-            <h2 className="text-3xl font-bold text-indigo-600 transition-all duration-500">
+            <h2 className="text-3xl font-bold text-indigo-600">
               {todayRecord?.totalHours ?? 0} hrs
             </h2>
           </div>
@@ -161,7 +180,6 @@ export default function EmployeeDashboard() {
 
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="flex gap-4 mb-10">
           <button
             onClick={markLogin}
@@ -180,7 +198,6 @@ export default function EmployeeDashboard() {
           </button>
         </div>
 
-        {/* ATTENDANCE HISTORY */}
         <div className="bg-white shadow-2xl rounded-2xl p-6">
 
           <h2 className="text-2xl font-semibold text-slate-900 mb-6">
@@ -210,13 +227,12 @@ export default function EmployeeDashboard() {
 
                 {records.map((r) => {
                   const rowStatus = (() => {
-  if (!r.loginTime) return "Absent";
-  if (r.loginTime && !r.logoutTime) return "Present";
-  if (r.totalHours >= 8) return "Present";
-  if (r.logoutTime && r.totalHours < 8) return "Incomplete";
-  return "Absent";
-})();
-
+                    if (!r.loginTime) return "Absent";
+                    if (r.loginTime && !r.logoutTime) return "Present";
+                    if (r.totalHours >= 8) return "Present";
+                    if (r.logoutTime && r.totalHours < 8) return "Incomplete";
+                    return "Absent";
+                  })();
 
                   return (
                     <tr
