@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/adminlogin");
+      router.replace("/adminlogin");
       return;
     }
     fetchAttendance(token);
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
 
       if (!res.ok) {
         localStorage.removeItem("token");
-        router.push("/adminlogin");
+        router.replace("/adminlogin");
         return;
       }
 
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
       setFilteredRecords(data);
       animateCounts(data);
     } catch {
-      router.push("/adminlogin");
+      router.replace("/adminlogin");
     }
   };
 
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   const handleExport = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/adminlogin");
+      router.replace("/adminlogin");
       return;
     }
 
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         localStorage.removeItem("token");
-        router.push("/adminlogin");
+        router.replace("/adminlogin");
         return;
       }
 
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/");
+    router.replace("/");
   };
 
   return (
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
 
       <div className="relative flex min-h-screen">
 
-        <aside className="w-64 bg-white/90 backdrop-blur-xl shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
+        <aside className="w-64 bg-white backdrop-blur-xl shadow-xl p-8 hidden md:flex flex-col justify-between border-r border-slate-200">
           <div>
             <h2 className="text-2xl font-bold text-indigo-600 mb-12">
               Admin Panel
@@ -187,10 +187,10 @@ export default function AdminDashboard() {
 
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h1 className="text-3xl font-bold text-slate-800">
+              <h1 className="text-3xl font-bold text-slate-900">
                 Admin Dashboard
               </h1>
-              <p className="text-slate-600 mt-1">
+              <p className="text-slate-700 mt-1">
                 Today’s Attendance Overview
               </p>
             </div>
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-slate-200">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-indigo-600 text-white uppercase tracking-wide shadow-md">
                 <tr>
@@ -252,21 +252,30 @@ export default function AdminDashboard() {
               <tbody>
                 {filteredRecords.map((r) => (
                   <tr key={r._id} className="border-b hover:bg-indigo-50">
-                    <td className="py-3 px-4 font-semibold text-slate-800">
+                    <td className="py-3 px-4 font-semibold text-slate-900">
                       {r.name}
                     </td>
-                    <td className="px-4">
+
+                    <td className="px-4 font-semibold text-slate-900">
                       {new Date(r.date).toLocaleDateString("en-IN")}
                     </td>
-                    <td className="px-4">
-                      {r.loginTime ? new Date(r.loginTime).toLocaleTimeString("en-IN") : "-"}
+
+                    <td className="px-4 text-slate-800 font-medium">
+                      {r.loginTime
+                        ? new Date(r.loginTime).toLocaleTimeString("en-IN")
+                        : "-"}
                     </td>
-                    <td className="px-4">
-                      {r.logoutTime ? new Date(r.logoutTime).toLocaleTimeString("en-IN") : "-"}
+
+                    <td className="px-4 text-slate-800 font-medium">
+                      {r.logoutTime
+                        ? new Date(r.logoutTime).toLocaleTimeString("en-IN")
+                        : "-"}
                     </td>
-                    <td className="px-4 font-bold text-indigo-700">
+
+                    <td className="px-4 font-bold text-indigo-800 text-base">
                       {r.totalHours}
                     </td>
+
                     <td className="px-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         r.status === "Present"
@@ -309,8 +318,8 @@ function SummaryCard({ title, value, accent }: any) {
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-slate-200 transition duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-200/50">
-      <h3 className="text-slate-600 text-sm mb-2">{title}</h3>
+    <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 transition duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-200/50">
+      <h3 className="text-slate-700 text-sm mb-2">{title}</h3>
       <p className={`text-3xl font-bold ${textColors[accent]}`}>
         {value}
       </p>
