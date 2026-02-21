@@ -8,6 +8,7 @@ export default function EmployeeSignupPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +28,11 @@ export default function EmployeeSignupPage() {
       return;
     }
 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -36,6 +42,7 @@ export default function EmployeeSignupPage() {
         body: JSON.stringify({
           name,
           email,
+          password,
           role: "employee",
         }),
       });
@@ -47,7 +54,9 @@ export default function EmployeeSignupPage() {
         return;
       }
 
-      router.push(`/verify-otp?email=${email}&type=employee`);
+      alert("Signup successful! Please login.");
+      router.push("/employeelogin");
+
     } catch (error) {
       console.error(error);
       setError("Server error. Please try again.");
@@ -59,19 +68,15 @@ export default function EmployeeSignupPage() {
   return (
     <main className="relative min-h-screen flex items-center justify-center">
 
-      {/* TOP HALF IMAGE */}
       <div
         className="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/empsignin.jpg')" }}
       />
 
-      {/* Overlay */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-black/40" />
 
-      {/* BOTTOM HALF */}
       <div className="absolute bottom-0 left-0 w-full h-1/2 bg-white" />
 
-      {/* CENTER CARD */}
       <form
         onSubmit={handleSignup}
         className="relative z-10 w-full max-w-md bg-white p-10 rounded-3xl shadow-2xl border border-slate-200"
@@ -81,7 +86,7 @@ export default function EmployeeSignupPage() {
         </h2>
 
         <p className="text-sm text-slate-600 mb-8 text-center">
-          Verify your email to create your account
+          Create your employee account
         </p>
 
         <div className="space-y-5">
@@ -93,8 +98,7 @@ export default function EmployeeSignupPage() {
             required
             className="w-full bg-white text-slate-900 border border-slate-300 px-4 py-3 rounded-xl
                        placeholder-slate-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-600
-                       focus:border-indigo-600 transition"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
 
           <input
@@ -105,8 +109,18 @@ export default function EmployeeSignupPage() {
             required
             className="w-full bg-white text-slate-900 border border-slate-300 px-4 py-3 rounded-xl
                        placeholder-slate-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-600
-                       focus:border-indigo-600 transition"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+
+          <input
+            type="password"
+            placeholder="Create Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full bg-white text-slate-900 border border-slate-300 px-4 py-3 rounded-xl
+                       placeholder-slate-400
+                       focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
 
           {error && (
@@ -122,15 +136,8 @@ export default function EmployeeSignupPage() {
           className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-xl
                      hover:bg-indigo-700 transition disabled:opacity-50"
         >
-          {loading ? "Sending OTP..." : "Send OTP"}
+          {loading ? "Creating Account..." : "Register"}
         </button>
-
-        {/* 📝 NOTE BLOCK ADDED BELOW BUTTON */}
-        <div className="mt-4 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 text-center">
-          <strong>Note:</strong> Please enter a valid and accessible email address. 
-          After clicking "Send OTP", check your inbox and also your spam/junk folder 
-          for the verification OTP.
-        </div>
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Already have an account?{" "}
